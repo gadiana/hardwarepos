@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15803d">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Store POS">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Store POS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="storeName">Store POS</h1>
+    <span id="netBadge" class="net" aria-live="polite">Online</span>
+  </header>
+
+  <main id="app">
+    <!-- SELL -->
+    <section id="view-sell" class="view">
+      <button id="backupBanner" class="banner" hidden>⚠ Backup recommended — tap to open Backup</button>
+      <form id="sellForm" class="searchbar" autocomplete="off">
+        <input id="sellInput" type="search" enterkeyhint="done" placeholder="Scan / type barcode or search item" aria-label="Barcode or item name">
+        <button type="button" id="sellScan" class="btn primary" aria-label="Scan with camera">📷 Scan</button>
+      </form>
+      <div id="sellResults" class="results" hidden></div>
+      <div id="cart" class="cart"></div>
+    </section>
+
+    <!-- INVENTORY -->
+    <section id="view-inv" class="view" hidden>
+      <div class="searchbar">
+        <input id="invSearch" type="search" placeholder="Search items" aria-label="Search inventory by name or barcode">
+        <button id="invScan" class="btn primary" aria-label="Scan with camera">📷 Scan</button>
+        <button id="invAdd" class="btn" aria-label="Add item manually">＋ Add</button>
+      </div>
+      <div id="invStats" class="stats"></div>
+      <label class="check"><input type="checkbox" id="invLow"> Show low / out-of-stock only</label>
+      <div id="invList" class="list"></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="view-hist" class="view" hidden>
+      <div class="seg" id="histRange" role="tablist">
+        <button data-range="today" class="on">Today</button>
+        <button data-range="week">7 days</button>
+        <button data-range="month">30 days</button>
+        <button data-range="all">All</button>
+      </div>
+      <div id="histStats" class="stats"></div>
+      <div id="histList" class="list"></div>
+    </section>
+
+    <!-- MORE -->
+    <section id="view-more" class="view" hidden>
+      <div class="card">
+        <h2>Store settings</h2>
+        <label>Store name <input id="setName" maxlength="40"></label>
+        <label>Currency symbol <input id="setCur" maxlength="4"></label>
+      </div>
+      <div class="card" id="backupCard">
+        <h2>Backup &amp; export</h2>
+        <p class="muted" id="backupInfo"></p>
+        <div class="btnrow">
+          <button class="btn primary" id="btnBackup">Download backup</button>
+          <button class="btn" id="btnRestore">Restore backup</button>
+          <input type="file" id="fileRestore" accept=".json,application/json" hidden>
+        </div>
+        <div class="btnrow">
+          <button class="btn" id="btnCsvSales">Sales CSV</button>
+          <button class="btn" id="btnCsvInv">Inventory CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>This device</h2>
+        <p class="muted" id="storageInfo"></p>
+        <div class="btnrow">
+          <button class="btn" id="btnInstall" hidden>Install app</button>
+          <button class="btn" id="btnPersist">Protect my data</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Danger zone</h2>
+        <button class="btn danger" id="btnErase">Erase all data</button>
+      </div>
+      <p class="muted center" id="verInfo"></p>
+    </section>
+  </main>
+
+  <!-- Sticky checkout bar (Sell tab only) -->
+  <div id="checkoutBar" class="checkout">
+    <div class="ck-total"><span id="cartCount" class="muted">0 items</span><strong id="cartTotal">₱0.00</strong></div>
+    <button id="quickBtn" class="btn">＋ Quick item</button>
+    <button id="chargeBtn" class="btn primary big" disabled>Charge</button>
+  </div>
+
+  <nav class="tabs" aria-label="Main">
+    <button data-tab="sell" class="on"><span aria-hidden="true">🛒</span>Sell</button>
+    <button data-tab="inv"><span aria-hidden="true">📦</span>Inventory</button>
+    <button data-tab="hist"><span aria-hidden="true">🧾</span>History</button>
+    <button data-tab="more"><span aria-hidden="true">⚙️</span>More</button>
+  </nav>
+
+  <div id="toast" popover="manual" role="status"></div>
+
+  <dialog id="dlg"></dialog>
+
+  <dialog id="scanner" class="scanner">
+    <div class="scanner-bar">
+      <strong id="scanTitle">Scan barcode</strong>
+      <span class="grow"></span>
+      <button id="scanTorch" class="btn" hidden aria-label="Toggle flashlight">🔦</button>
+      <button id="scanClose" class="btn primary">Done</button>
+    </div>
+    <div class="scanner-stage">
+      <video id="scanVideo" playsinline muted></video>
+      <div id="scanReader" hidden></div>
+      <div class="scan-frame" aria-hidden="true"></div>
+    </div>
+    <p id="scanStatus" class="scan-status" role="status"></p>
+    <form id="scanManual" class="scan-manual" autocomplete="off">
+      <input id="scanManualInput" type="text" inputmode="numeric" placeholder="…or type the barcode" aria-label="Type barcode">
+      <button class="btn">OK</button>
+    </form>
+  </dialog>
+
+  <script src="core.js"></script>
+  <script src="db.js"></script>
+  <script src="scanner.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
