@@ -1,7 +1,7 @@
 /* sw.js — makes the app work fully offline.
  * Cache-first from a versioned cache. IMPORTANT: bump VERSION every time you redeploy changed files,
  * otherwise phones keep serving the old cached copy. */
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0';
 const CACHE = 'store-pos-' + VERSION;
 
 const CORE = [

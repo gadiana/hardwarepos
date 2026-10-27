@@ -5,7 +5,8 @@ A single-folder web app (PWA). No server, no database service, no monthly cost. 
 ## What it does
 - **Sell**: scan a barcode with the camera (📷), type/scan with a USB or Bluetooth scanner, or search by name. Cart, quantity edit, quick (non-inventory) item, cash received + change, stock is deducted automatically.
 - **Inventory**: scan to add a new item or restock an existing one ("Save & scan next" for receiving deliveries), or add/edit manually. Cost price, low-stock alerts, stock value.
-- **History**: today / 7 days / 30 days / all, revenue and estimated profit, void a sale (stock is restored).
+- **Multi-buy deals**: set a deal on any item, e.g. candy at 2.00 each **or 3 for 5.00**. The cart prices it automatically: 1 = 2.00, 2 = 4.00, 3 = 5.00, 4 = 7.00, 5 = 9.00, 6 = 10.00. Leave the deal blank for a plain price (2.00 per candy). A deal must be cheaper than buying the same number one by one.
+- **Sales (history)**: today / 7 days / 30 days / all, revenue and estimated profit, void a sale (stock is restored).
 - **More**: store name, currency symbol, **backup / restore (JSON)**, CSV export, protect storage.
 
 ## IMPORTANT things to know
@@ -43,6 +44,12 @@ Drag the unzipped folder onto https://app.netlify.com/drop and sign up to keep t
 3. Tap **Sell → 📷 Scan** once and **Allow** the camera.
 4. Test: switch on airplane mode, open the app, add an item and make a sale. It all still works.
 5. *More → Protect my data*, and do your first backup.
+
+## Updating a phone that already has the app
+1. Upload the new files to the same GitHub repository (or Cloudflare project) and replace the old ones, including the `icons` folder.
+2. On the phone, open the app **with internet on**, close it fully, then open it again. The second open shows the new version (*More* shows the version number at the bottom).
+3. Your items and sales are kept. Back up first if you want to be safe.
+4. The home-screen icon changes only after Chrome refreshes the installed app, which can take a day. Removing and reinstalling the app updates it at once, but export a backup first, because uninstalling deletes the data.
 
 ## Updating after you change files
 Edit `VERSION` in `sw.js` (e.g. `v1.0.1`) before redeploying, otherwise phones keep the old cached copy. Re-open the app twice (online) to pick up the update.
