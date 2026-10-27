@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#15803d">
+  <meta name="theme-color" content="#0f1b3d">
   <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,18 +15,53 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <h1 id="storeName">Store POS</h1>
-    <span id="netBadge" class="net" aria-live="polite">Online</span>
+  <!-- Icon sprite: one place for every icon, drawn with the current text colour -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 9v6M10.5 9v6M14 9v6M17 9v6"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></symbol>
+      <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></symbol>
+      <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></symbol>
+      <symbol id="i-torch" viewBox="0 0 24 24"><path d="M9 3h6l-1 6h-4L9 3ZM10 9l-1 12h6l-1-12"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></symbol>
+      <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 20h14"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7V3Z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 20h18L12 4ZM12 10v4.5M12 17.5v.01"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12Z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="top">
+    <div class="top-text">
+      <p class="today" id="todayDate"></p>
+      <h1 id="storeName">Store POS</h1>
+    </div>
+    <span id="netBadge" class="net" aria-live="polite"><i></i><b>Online</b></span>
   </header>
 
   <main id="app">
     <!-- SELL -->
     <section id="view-sell" class="view">
-      <button id="backupBanner" class="banner" hidden>⚠ Backup recommended — tap to open Backup</button>
-      <form id="sellForm" class="searchbar" autocomplete="off">
-        <input id="sellInput" type="search" enterkeyhint="done" placeholder="Scan / type barcode or search item" aria-label="Barcode or item name">
-        <button type="button" id="sellScan" class="btn primary" aria-label="Scan with camera">📷 Scan</button>
+      <button id="backupBanner" class="banner" hidden>
+        <svg class="ic"><use href="#i-alert"/></svg><span>No backup this week. Tap to save one.</span>
+      </button>
+      <form id="sellForm" class="finder" autocomplete="off">
+        <label class="field">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input id="sellInput" type="search" enterkeyhint="done" placeholder="Search item or barcode" aria-label="Search item or type barcode">
+        </label>
+        <button type="button" id="sellScan" class="scanbtn" aria-label="Scan with camera">
+          <svg class="ic lg"><use href="#i-scan"/></svg><span>Scan</span>
+        </button>
       </form>
       <div id="sellResults" class="results" hidden></div>
       <div id="cart" class="cart"></div>
@@ -34,19 +69,30 @@
 
     <!-- INVENTORY -->
     <section id="view-inv" class="view" hidden>
-      <div class="searchbar">
-        <input id="invSearch" type="search" placeholder="Search items" aria-label="Search inventory by name or barcode">
-        <button id="invScan" class="btn primary" aria-label="Scan with camera">📷 Scan</button>
-        <button id="invAdd" class="btn" aria-label="Add item manually">＋ Add</button>
+      <div class="view-head">
+        <h2>Inventory</h2>
+        <div class="head-actions">
+          <button id="invScan" class="btn solid" aria-label="Scan item to add or restock"><svg class="ic"><use href="#i-scan"/></svg>Scan</button>
+          <button id="invAdd" class="btn" aria-label="Add item by typing"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
+        </div>
       </div>
+      <label class="field wide">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="invSearch" type="search" placeholder="Search items" aria-label="Search inventory by name or barcode">
+      </label>
       <div id="invStats" class="stats"></div>
-      <label class="check"><input type="checkbox" id="invLow"> Show low / out-of-stock only</label>
+      <div class="seg" id="invFilter" role="group" aria-label="Filter items">
+        <button data-f="all" class="on">All</button>
+        <button data-f="low">Running low</button>
+        <button data-f="out">Out of stock</button>
+      </div>
       <div id="invList" class="list"></div>
     </section>
 
     <!-- HISTORY -->
     <section id="view-hist" class="view" hidden>
-      <div class="seg" id="histRange" role="tablist">
+      <div class="view-head"><h2>Sales</h2></div>
+      <div class="seg" id="histRange" role="group" aria-label="Period">
         <button data-range="today" class="on">Today</button>
         <button data-range="week">7 days</button>
         <button data-range="month">30 days</button>
@@ -58,52 +104,59 @@
 
     <!-- MORE -->
     <section id="view-more" class="view" hidden>
+      <div class="view-head"><h2>More</h2></div>
       <div class="card">
-        <h2>Store settings</h2>
-        <label>Store name <input id="setName" maxlength="40"></label>
-        <label>Currency symbol <input id="setCur" maxlength="4"></label>
+        <h3>Your store</h3>
+        <label class="plain">Store name <input id="setName" maxlength="40"></label>
+        <label class="plain">Currency symbol <input id="setCur" maxlength="4"></label>
       </div>
       <div class="card" id="backupCard">
-        <h2>Backup &amp; export</h2>
+        <h3>Backup and export</h3>
         <p class="muted" id="backupInfo"></p>
         <div class="btnrow">
-          <button class="btn primary" id="btnBackup">Download backup</button>
-          <button class="btn" id="btnRestore">Restore backup</button>
+          <button class="btn solid" id="btnBackup"><svg class="ic"><use href="#i-down"/></svg>Download backup</button>
+          <button class="btn" id="btnRestore"><svg class="ic"><use href="#i-up"/></svg>Restore backup</button>
           <input type="file" id="fileRestore" accept=".json,application/json" hidden>
         </div>
         <div class="btnrow">
-          <button class="btn" id="btnCsvSales">Sales CSV</button>
-          <button class="btn" id="btnCsvInv">Inventory CSV</button>
+          <button class="btn" id="btnCsvSales"><svg class="ic"><use href="#i-file"/></svg>Sales CSV</button>
+          <button class="btn" id="btnCsvInv"><svg class="ic"><use href="#i-file"/></svg>Inventory CSV</button>
         </div>
       </div>
       <div class="card">
-        <h2>This device</h2>
+        <h3>This phone</h3>
         <p class="muted" id="storageInfo"></p>
         <div class="btnrow">
-          <button class="btn" id="btnInstall" hidden>Install app</button>
-          <button class="btn" id="btnPersist">Protect my data</button>
+          <button class="btn" id="btnInstall" hidden><svg class="ic"><use href="#i-phone"/></svg>Install app</button>
+          <button class="btn" id="btnPersist"><svg class="ic"><use href="#i-shield"/></svg>Protect my data</button>
         </div>
       </div>
       <div class="card">
-        <h2>Danger zone</h2>
+        <h3>Erase everything</h3>
+        <p class="muted">Deletes all items and sales on this phone.</p>
         <button class="btn danger" id="btnErase">Erase all data</button>
       </div>
       <p class="muted center" id="verInfo"></p>
     </section>
   </main>
 
-  <!-- Sticky checkout bar (Sell tab only) -->
-  <div id="checkoutBar" class="checkout">
-    <div class="ck-total"><span id="cartCount" class="muted">0 items</span><strong id="cartTotal">₱0.00</strong></div>
-    <button id="quickBtn" class="btn">＋ Quick item</button>
-    <button id="chargeBtn" class="btn primary big" disabled>Charge</button>
+  <!-- Checkout dock (Sell tab only) -->
+  <div id="checkoutBar" class="dock">
+    <div class="dock-total">
+      <span id="cartCount" class="dock-sub">0 items</span>
+      <strong id="cartTotal">₱0.00</strong>
+    </div>
+    <button id="quickBtn" class="dock-quick" aria-label="Add a quick item">
+      <svg class="ic"><use href="#i-plus"/></svg><span>Quick item</span>
+    </button>
+    <button id="chargeBtn" class="charge" disabled>Charge</button>
   </div>
 
   <nav class="tabs" aria-label="Main">
-    <button data-tab="sell" class="on"><span aria-hidden="true">🛒</span>Sell</button>
-    <button data-tab="inv"><span aria-hidden="true">📦</span>Inventory</button>
-    <button data-tab="hist"><span aria-hidden="true">🧾</span>History</button>
-    <button data-tab="more"><span aria-hidden="true">⚙️</span>More</button>
+    <button data-tab="sell" class="on"><svg class="ic"><use href="#i-bag"/></svg><span>Sell</span></button>
+    <button data-tab="inv"><svg class="ic"><use href="#i-box"/></svg><span>Inventory</span></button>
+    <button data-tab="hist"><svg class="ic"><use href="#i-receipt"/></svg><span>Sales</span></button>
+    <button data-tab="more"><svg class="ic"><use href="#i-gear"/></svg><span>More</span></button>
   </nav>
 
   <div id="toast" popover="manual" role="status"></div>
@@ -114,18 +167,18 @@
     <div class="scanner-bar">
       <strong id="scanTitle">Scan barcode</strong>
       <span class="grow"></span>
-      <button id="scanTorch" class="btn" hidden aria-label="Toggle flashlight">🔦</button>
-      <button id="scanClose" class="btn primary">Done</button>
+      <button id="scanTorch" class="round" hidden aria-label="Toggle flashlight"><svg class="ic"><use href="#i-torch"/></svg></button>
+      <button id="scanClose" class="btn tag">Done</button>
     </div>
     <div class="scanner-stage">
       <video id="scanVideo" playsinline muted></video>
       <div id="scanReader" hidden></div>
-      <div class="scan-frame" aria-hidden="true"></div>
+      <div class="scan-frame" aria-hidden="true"><i></i></div>
     </div>
     <p id="scanStatus" class="scan-status" role="status"></p>
     <form id="scanManual" class="scan-manual" autocomplete="off">
-      <input id="scanManualInput" type="text" inputmode="numeric" placeholder="…or type the barcode" aria-label="Type barcode">
-      <button class="btn">OK</button>
+      <input id="scanManualInput" type="text" inputmode="numeric" placeholder="Or type the barcode" aria-label="Type barcode">
+      <button class="btn tag">Add</button>
     </form>
   </dialog>
 

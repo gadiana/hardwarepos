@@ -45,7 +45,21 @@
     return 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   }
 
-  /** f = { name, priceCents, costCents, stock, lowStock } -> array of error strings. */
+  /** Multi-buy pricing. Example: price 2.00 each, deal "3 for 5.00":
+   *  1 -> 2, 2 -> 4, 3 -> 5, 4 -> 7, 5 -> 9, 6 -> 10.  Full bundles get the deal price, the rest pay the single price.
+   *  A deal that does not actually save money is ignored. */
+  function dealApplies(priceCents, bundleQty, bundlePriceCents) {
+    return bundleQty >= 2 && bundlePriceCents > 0 && bundlePriceCents < bundleQty * priceCents;
+  }
+  function lineTotal(priceCents, qty, bundleQty, bundlePriceCents) {
+    if (dealApplies(priceCents, bundleQty, bundlePriceCents)) {
+      return Math.floor(qty / bundleQty) * bundlePriceCents + (qty % bundleQty) * priceCents;
+    }
+    return priceCents * qty;
+  }
+
+  /** f = { name, priceCents, costCents, stock, lowStock, bundleQty, bundlePriceCents } -> array of error strings.
+   *  bundleQty/bundlePriceCents are both 0 (or omitted) when the item has no deal. */
   function validateItem(f) {
     const errors = [];
     if (!String(f.name || '').trim()) errors.push('Enter an item name.');
@@ -53,6 +67,15 @@
     if (!Number.isFinite(f.costCents) || f.costCents < 0) errors.push('Cost price is not a valid amount.');
     if (!Number.isInteger(f.stock) || f.stock < 0) errors.push('Stock must be a whole number (0 or more).');
     if (!Number.isInteger(f.lowStock) || f.lowStock < 0) errors.push('Low-stock alert must be a whole number (0 or more).');
+    const bq = f.bundleQty === undefined ? 0 : f.bundleQty;
+    const bp = f.bundlePriceCents === undefined ? 0 : f.bundlePriceCents;
+    if (bq !== 0 || bp !== 0) {
+      if (!Number.isInteger(bq) || bq < 2) errors.push('For a deal, enter how many items (2 or more).');
+      else if (!Number.isFinite(bp) || bp <= 0) errors.push('For a deal, enter the deal price.');
+      else if (Number.isFinite(f.priceCents) && bp >= bq * f.priceCents) {
+        errors.push('The deal price must be less than ' + formatMoney(bq * f.priceCents, '') + ' (the price of ' + bq + ' bought separately).');
+      }
+    }
     return errors;
   }
 
@@ -63,20 +86,24 @@
     if (i >= 0) return cart.map(function (l, k) { return k === i ? Object.assign({}, l, { qty: l.qty + qty }) : l; });
     return cart.concat([{
       key: item.id, itemId: item.id, barcode: item.barcode || '', name: item.name,
-      priceCents: item.priceCents, costCents: item.costCents || 0, qty: qty, custom: false
+      priceCents: item.priceCents, costCents: item.costCents || 0, qty: qty, custom: false,
+      bundleQty: item.bundleQty || 0, bundlePriceCents: item.bundlePriceCents || 0
     }]);
   }
   function cartAddCustom(cart, name, priceCents, qty) {
     return cart.concat([{
       key: uid(), itemId: null, barcode: '', name: String(name || '').trim() || 'Quick item',
-      priceCents: priceCents, costCents: 0, qty: qty || 1, custom: true
+      priceCents: priceCents, costCents: 0, qty: qty || 1, custom: true, bundleQty: 0, bundlePriceCents: 0
     }]);
   }
   function cartSetQty(cart, key, qty) {
     if (!(qty > 0)) return cart.filter(function (l) { return l.key !== key; });
     return cart.map(function (l) { return l.key === key ? Object.assign({}, l, { qty: qty }) : l; });
   }
-  function cartTotal(cart) { return cart.reduce(function (s, l) { return s + l.priceCents * l.qty; }, 0); }
+  function cartLineTotal(l) { return lineTotal(l.priceCents, l.qty, l.bundleQty, l.bundlePriceCents); }
+  function cartTotal(cart) { return cart.reduce(function (s, l) { return s + cartLineTotal(l); }, 0); }
+  /** How much the deals take off compared with paying the single price for everything. */
+  function cartSavings(cart) { return cart.reduce(function (s, l) { return s + l.priceCents * l.qty - cartLineTotal(l); }, 0); }
   function cartUnits(cart) { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
 
   /** Cart lines asking for more than is on hand (only for tracked, still-existing items). */
@@ -98,7 +125,8 @@
       ts: opts.ts || Date.now(),
       lines: cart.map(function (l) {
         return { itemId: l.itemId, name: l.name, barcode: l.barcode, priceCents: l.priceCents,
-                 costCents: l.costCents, qty: l.qty, stockDeducted: 0 };
+                 costCents: l.costCents, qty: l.qty, stockDeducted: 0,
+                 bundleQty: l.bundleQty || 0, bundlePriceCents: l.bundlePriceCents || 0, totalCents: cartLineTotal(l) };
       }),
       totalCents: totalCents,
       paidCents: paidCents,
@@ -137,7 +165,8 @@
 
   return {
     toCents: toCents, formatMoney: formatMoney, toCount: toCount, canonBarcode: canonBarcode, uid: uid,
-    validateItem: validateItem, cartAdd: cartAdd, cartAddCustom: cartAddCustom, cartSetQty: cartSetQty,
+    validateItem: validateItem, lineTotal: lineTotal, dealApplies: dealApplies, cartAdd: cartAdd, cartAddCustom: cartAddCustom,
+    cartSetQty: cartSetQty, cartLineTotal: cartLineTotal, cartSavings: cartSavings,
     cartTotal: cartTotal, cartUnits: cartUnits, stockShortfalls: stockShortfalls, buildSale: buildSale,
     deductStock: deductStock, summarize: summarize, dayStart: dayStart, toCSV: toCSV
   };
